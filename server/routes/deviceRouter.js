@@ -1,10 +1,12 @@
 const Router =require('express');
 const router = new Router();
+const DeviceController=require('../controllers/deviceController')
+const{getOne,getAll,create}=DeviceController
 
 
-router.post('/',)
-router.get('/',)
-router.get('/:id',)
+router.post('/',create)
+router.get('/',getAll)
+router.get('/:id',getOne)
 
 
 

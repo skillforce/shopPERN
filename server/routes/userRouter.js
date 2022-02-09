@@ -6,7 +6,7 @@ const {login,check,registration}=userController;
 
 router.post('/registration',registration)
 router.post('/login',login)
-router.get('/auth',authMiddleware,check)
+router.get('/check',authMiddleware,check)
 
 
 

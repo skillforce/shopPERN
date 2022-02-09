@@ -9,11 +9,11 @@ export const DeviceItem = ({device}) => {
     return (
         <Col onClick={()=> navigate(PATH.DEVICE+`/${device.id}`)} className={"mt-5"} md={3} style={{cursor:"pointer"}} >
             <Card style={{width: 150, cursor: "pointer"}} border={"light"}>
-                <Image  width={150} height={150} src={device.img}/>
+                <Image  width={150} height={150} src={process.env.REACT_APP_API_URL + device.img}/>
                 <div className="d-flex align-items-center justify-content-center flex-column ">
                     <div>{device.name}</div>
                     <div onClick={(e)=>e.stopPropagation()} >
-                        <ReactStars count={device.rating}
+                        <ReactStars count={device.rating=5}
                                     onChange={() => {
                                     }}
                                     size={24}

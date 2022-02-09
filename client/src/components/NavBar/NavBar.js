@@ -9,6 +9,13 @@ export const NavBar = observer(() => {
     const {user} = useContext(Context)
     let navigate = useNavigate();
 
+
+   const logoutBtnHandler =()=>{
+       user.logout()
+       navigate(PATH.LOGIN)
+   }
+
+
     return (
         <Navbar bg="dark" variant="dark">
             <Container>
@@ -25,10 +32,7 @@ export const NavBar = observer(() => {
                         </Button>
                         <Button
                             variant={"outline-light"}
-                            onClick={() =>{
-                            navigate(PATH.LOGIN)
-                            }
-                            }>
+                            onClick={logoutBtnHandler}>
                             Log Out
                         </Button>
                     </Nav> :

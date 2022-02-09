@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Navigate, Route, Routes} from 'react-router-dom'
 import {Admin} from "../pages/Admin";
 import {Basket} from "../pages/Basket";
@@ -7,6 +7,8 @@ import {Shop} from "../pages/Shop";
 import {ErrorPage} from "../pages/ErrorPage";
 import {Login} from "../pages/Authentification/Login";
 import {Registration} from "../pages/Authentification/Registration";
+import {Context} from "../index";
+import {observer} from "mobx-react-lite";
 
 
 export const PATH = {
@@ -24,7 +26,7 @@ export const PATH = {
 
 
 
-export const AUTH_RIGHTS_PAGES=[
+export const ADMIN_ROLE_RIGHTS_PAGES=[
     {
         path:PATH.ADMIN,
         Component:<Admin/>
@@ -35,7 +37,8 @@ export const AUTH_RIGHTS_PAGES=[
     }
     ]
 
-export const COMMON_RIGHTS_PAGES =[
+
+export const AUTH_RIGHTS_PAGES =[
     {
         path:PATH.LOGIN,
         Component:<Login/>
@@ -43,7 +46,11 @@ export const COMMON_RIGHTS_PAGES =[
     {
         path:PATH.REGISTRATION,
         Component:<Registration/>
-    },
+    }
+    ]
+
+export const COMMON_RIGHTS_PAGES =[
+
     {
         path:PATH.DEVICE+"/:id",
         Component:<DevicePage/>
@@ -60,26 +67,42 @@ export const COMMON_RIGHTS_PAGES =[
 
 
 
-const AuthWrapper = ({children, isAuth}) => {
-    return isAuth ? children : <Navigate to={'/404'} replace/>
-}
 
-export const RoutesInfo = () => {
+
+
+export const RoutesInfo = observer(() => {
+
+    const AuthWrapper = ({children, isAuth}) => {
+        return isAuth ? <Navigate to={'/shop'} replace/> : children
+    }
+
+    const RoleWrapper = ({children, userRole})=>{
+        return userRole === "ADMIN" ? children: <Navigate to={'/404'} replace/>
+    }
+
+    const {user} = useContext(Context);
 
     return (
         <div>
             <Routes>
                 <Route path={'/'} element={<Navigate replace to={PATH.SHOP}/>}/>
-                {AUTH_RIGHTS_PAGES.map(({path,Component},i)=>(<Route key={i} path={path}
-                       element={<AuthWrapper isAuth={true}>
-                           {Component}
-                                </AuthWrapper>
-                       }/>))}
+                {AUTH_RIGHTS_PAGES.map(({path, Component}, i) => (<Route key={i} path={path}
+                                                                         element={<AuthWrapper isAuth={user.isAuth}>
+                                                                             {Component}
+                                                                         </AuthWrapper>
+                                                                         }/>))}
 
-                {COMMON_RIGHTS_PAGES.map(({path,Component},i)=>(<Route key={i} path={path} element={Component}/>))}
+                {ADMIN_ROLE_RIGHTS_PAGES.map(({path, Component}, i) => (<Route key={i} path={path}
+                                                                               element={<RoleWrapper userRole={user.user.role}>
+                                                                                   {Component}
+                                                                               </RoleWrapper>
+                                                                               }/>))}
+
+
+                {COMMON_RIGHTS_PAGES.map(({path, Component}, i) => (<Route key={i} path={path} element={Component}/>))}
 
                 <Route path={'*'} element={<ErrorPage/>}/>
             </Routes>
         </div>
     );
-};
+});

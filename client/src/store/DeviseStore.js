@@ -1,102 +1,132 @@
-import {makeAutoObservable} from "mobx";
+import {autorun, makeAutoObservable} from "mobx";
+import {
+    createBrand,
+    createDevice,
+    createType,
+    fetchBrands,
+    fetchDevices,
+    fetchOneDevice,
+    fetchTypes
+} from "../http/deviceAPI";
 
 export default class DeviseStore {
     constructor() {
-        this._types = [{id: 1, name: 'Refrigerator'},
-            {id: 2, name: 'TV'},
-            {id: 3, name: 'Mobile'},
-            {id: 4, name: 'LapTop'}];
-        this._brands = [{id: 1, name: 'Apple'},
-            {id: 2, name: 'Samsung'},
-            {id: 3, name: 'Lenovo'},
-            {id: 4, name: 'Huawei'}];
-        this._devices = [
-            {
-                id: 1,
-                name: 'Iphone 12 PRO',
-                price: 25000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },
-            {
-                id: 2,
-                name: 'Samsung S21',
-                price: 50000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },
-            {
-                id: 3,
-                name: 'Huawei P40 lite',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },
-            {
-                id: 4,
-                name: 'Apple Iphone SE',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },  {
-                id: 4,
-                name: 'Apple Iphone SE',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },  {
-                id: 4,
-                name: 'Apple Iphone SE',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },  {
-                id: 4,
-                name: 'Apple Iphone SE',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },  {
-                id: 4,
-                name: 'Apple Iphone SE',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },  {
-                id: 4,
-                name: 'Apple Iphone SE',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },  {
-                id: 4,
-                name: 'Apple Iphone SE',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },  {
-                id: 4,
-                name: 'Apple Iphone SE',
-                price: 45000,
-                rating: 5,
-                img: 'https://mobillife.by/images/virtuemart/product/30052907b.jpg'
-            },
-        ];
+        this._types = [];
+        this._brands = [];
+        this._devices = [];
+        this._device = {};
+        this._loadingStatus = 'idle'
         this._selectedType = {};
         this._selectedBrand = {};
+        this._page = 1;
+        this._totalCount = 0;
+        this._limit = 3;
+
         makeAutoObservable(this)
+        autorun(()=> {
+            this.initDeviceListPage()
+        })
+        autorun(async () => {
+            if (this.page || this.selectedBrand || this.selectedType) {
+                const devices = await fetchDevices(this.limit,this.page,this.selectedType.id,this.selectedBrand.id);
+                this.setDevices(devices.rows);
+                this.setTotalCount(devices.count)
+            }
+        })
     }
+
+    async initDeviceListPage() {
+        this.setLoadingStatus('loading')
+        try {
+            const brands = await fetchBrands();
+            const types = await fetchTypes();
+            const devices = await fetchDevices(this.limit,this.page);
+            this.setBrands(brands);
+            this.setTypes(types);
+            this.setDevices(devices.rows);
+            this.setTotalCount(devices.count)
+            this.setLoadingStatus('success')
+        } catch (err) {
+            console.log(err)
+        } finally {
+            this.setLoadingStatus('success')
+        }
+    }
+
+    async createType(newType) {
+        this.setLoadingStatus('loading')
+        try {
+            const res = await createType(newType);
+            this.setTypes([...this.types, res])
+            this.setLoadingStatus('success')
+        } catch (err) {
+            console.log(err.message)
+        }
+    }
+    async createDevice(formData) {
+        this.setLoadingStatus('loading')
+        try {
+            const res = await createDevice(formData);
+            this.setDevices([...this.devices, res])
+            this.setLoadingStatus('success')
+        } catch (err) {
+            console.log(err.message)
+        }
+    }
+
+    async createBrand(newBrand) {
+        this.setLoadingStatus('loading')
+        try {
+            const res = await createBrand(newBrand);
+            this.setBrands([...this.brands, res])
+            this.setLoadingStatus('success')
+        } catch (err) {
+            console.log(err.message)
+        }
+    }
+
+    async initDevicePage(id) {
+        this.setLoadingStatus('loading')
+        try {
+            const res = await fetchOneDevice(id)
+            this.setDevice(res)
+            this.setLoadingStatus('success')
+        } catch (err) {
+            console.log(err)
+        } finally {
+            this.setLoadingStatus('success')
+        }
+
+    }
+
 
     setTypes(type) {
         this._types = type
+    }
+    setPage(page) {
+        this._page = page
+    }
+    setLimit(limit) {
+        this._limit = limit
+    }
+    setTotalCount(totalCount) {
+        this._totalCount = totalCount
+    }
+
+    setDevice(device) {
+        this._device = device
+    }
+
+    setLoadingStatus(newStatus) {
+        this._loadingStatus = newStatus
     }
 
     setBrands(brand) {
         this._brands = brand;
     }
 
-    setDevice(device) {
-        this._devices = device;
+    setDevices(devices) {
+        this._devices = devices;
     }
 
     setSelectedType(type) {
@@ -109,6 +139,20 @@ export default class DeviseStore {
 
     get types() {
         return this._types
+    }
+    get page() {
+        return this._page
+    }
+    get limit() {
+       return this._limit
+    }
+    get totalCount() {
+        return this._totalCount
+    }
+
+
+    get loadingStatus() {
+        return this._loadingStatus
     }
 
     get brands() {
@@ -125,6 +169,10 @@ export default class DeviseStore {
 
     get selectedBrand() {
         return this._selectedBrand
+    }
+
+    get device() {
+        return this._device
     }
 
 

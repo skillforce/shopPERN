@@ -7,7 +7,7 @@ const{getOne,getAll,create}=DeviceController
 
 
 router.post('/',checkRoleMiddleware('ADMIN'),create)
-router.get('/',authMiddleware,getAll)
+router.get('/',getAll)
 router.get('/:id',getOne)
 
 
